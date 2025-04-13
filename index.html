@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>3D Beta Distributions</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.2/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.5/jstat.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #plot {
+            width: 100%;
+            height: 600px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .brand-selector {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        select {
+            padding: 5px;
+        }
+
+        button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .parameters {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .brand-params {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .param-slider {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .param-slider label {
+            width: 60px;
+        }
+
+        .param-slider input[type="range"] {
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .param-slider .value {
+            width: 50px;
+            text-align: right;
+        }
+
+        h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>3D Beta Distributions: Distinct Brand POV</h2>
+
+    <div class="controls">
+        <div class="brand-selector">
+            <label>Brand 1:</label>
+            <select id="brand1" onchange="updatePlot()">
+                <option value="A" selected>Brand A</option>
+                <option value="B">Brand B</option>
+                <option value="C">Brand C</option>
+                <option value="D">Brand D</option>
+                <option value="E">Brand E</option>
+                <option value="F">Brand F</option>
+                <option value="G">Brand G</option>
+                <option value="H">Brand H</option>
+            </select>
+        </div>
+
+        <div class="brand-selector">
+            <label>Brand 2:</label>
+            <select id="brand2" onchange="updatePlot()">
+                <option value="A">Brand A</option>
+                <option value="B" selected>Brand B</option>
+                <option value="C">Brand C</option>
+                <option value="D">Brand D</option>
+                <option value="E">Brand E</option>
+                <option value="F">Brand F</option>
+                <option value="G">Brand G</option>
+                <option value="H">Brand H</option>
+            </select>
+        </div>
+
+        <div class="brand-selector">
+            <label>Brand 3:</label>
+            <select id="brand3" onchange="updatePlot()">
+                <option value="A">Brand A</option>
+                <option value="B">Brand B</option>
+                <option value="C">Brand C</option>
+                <option value="D">Brand D</option>
+                <option value="E" selected>Brand E</option>
+                <option value="F">Brand F</option>
+                <option value="G">Brand G</option>
+                <option value="H">Brand H</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="plot"></div>
+
+    <div class="parameters" id="parameters-container">
+        <!-- Brand parameter sliders will be generated here -->
+    </div>
+
+    <script>
+        // Initial brand parameters (alpha and beta)
+        let brandParams = {
+            'A': [0.1983, 1.0861],
+            'B': [0.0301, 1.3198],
+            'C': [0.0389, 1.2937],
+            'D': [0.0721, 1.1823],
+            'E': [0.3642, 0.7451],
+            'F': [0.1634, 0.9646],
+            'G': [0.1344, 1.0155],
+            'H': [0.1835, 1.0411]
+        };
+
+        // Function to compute Beta PDF values using jStat
+        function betaPdfValues(alpha, beta, numPoints = 200) {
+            const xValues = Array.from({ length: numPoints }, (_, i) => i / (numPoints - 1));
+            const pdfValues = xValues.map(x => {
+                // Use jStat for accurate Beta PDF calculation
+                return jStat.beta.pdf(x, alpha, beta);
+            });
+
+            return [xValues, pdfValues];
+        }
+
+        // Function to transform points based on orientation
+        function getTransformedPoints(brandIndex, xVals, pdfVals) {
+            let X, Y, Z;
+
+            if (brandIndex === 0) {
+                // X-Z plane
+                X = xVals;
+                Y = Array(xVals.length).fill(0);
+                Z = pdfVals;
+            } else if (brandIndex === 1) {
+                // Y-Z plane
+                X = Array(xVals.length).fill(0);
+                Y = xVals;
+                Z = pdfVals;
+            } else if (brandIndex === 2) {
+                // X-Y plane
+                X = xVals;
+                Y = pdfVals;
+                Z = Array(xVals.length).fill(0);
+            } else {
+                // Default with Y offset
+                X = xVals;
+                Y = Array(xVals.length).fill(brandIndex * 0.2);
+                Z = pdfVals;
+            }
+
+            return [X, Y, Z];
+        }
+
+        // Function to create the 3D plot
+        function create3DBetaPlot(selectedBrands) {
+            const traces = [];
+            const colors = ['blue', 'orange', 'green'];
+
+            selectedBrands.forEach((brand, idx) => {
+                const [alpha, beta] = brandParams[brand];
+                const [xVals, pdfVals] = betaPdfValues(alpha, beta);
+                const [X, Y, Z] = getTransformedPoints(idx, xVals, pdfVals);
+
+                traces.push({
+                    type: 'scatter3d',
+                    mode: 'lines',
+                    x: X,
+                    y: Y,
+                    z: Z,
+                    name: `Brand ${brand} (α=${alpha.toFixed(4)}, β=${beta.toFixed(4)})`,
+                    line: {
+                        width: 4,
+                        color: colors[idx]
+                    }
+                });
+            });
+
+            const layout = {
+                title: '3D Beta Distributions: Distinct Brand POV',
+                scene: {
+                    xaxis: {
+                        title: 'X-axis',
+                        range: [0, 1]
+                    },
+                    yaxis: {
+                        title: 'Y-axis',
+                        range: [0, 14]
+                    },
+                    zaxis: {
+                        title: 'Z-axis',
+                        range: [0, 14]
+                    },
+                    camera: {
+                        eye: { x: 1.5, y: 1.5, z: 1.5 }
+                    }
+                },
+                margin: {
+                    l: 0,
+                    r: 0,
+                    b: 0,
+                    t: 30
+                }
+            };
+
+            Plotly.newPlot('plot', traces, layout);
+        }
+
+        // Function to update the plot based on selected brands
+        function updatePlot() {
+            const brand1 = document.getElementById('brand1').value;
+            const brand2 = document.getElementById('brand2').value;
+            const brand3 = document.getElementById('brand3').value;
+
+            create3DBetaPlot([brand1, brand2, brand3]);
+        }
+
+        // Function to create parameter sliders for all brands
+        function createParameterSliders() {
+            const container = document.getElementById('parameters-container');
+            container.innerHTML = '';
+
+            Object.keys(brandParams).forEach(brand => {
+                const [alpha, beta] = brandParams[brand];
+
+                const brandDiv = document.createElement('div');
+                brandDiv.className = 'brand-params';
+
+                const brandTitle = document.createElement('h3');
+                brandTitle.textContent = `Brand ${brand} Parameters`;
+                brandDiv.appendChild(brandTitle);
+
+                // Alpha slider
+                const alphaDiv = document.createElement('div');
+                alphaDiv.className = 'param-slider';
+
+                const alphaLabel = document.createElement('label');
+                alphaLabel.textContent = 'Alpha:';
+                alphaDiv.appendChild(alphaLabel);
+
+                const alphaSlider = document.createElement('input');
+                alphaSlider.type = 'range';
+                alphaSlider.min = '0.01';
+                alphaSlider.max = '2';
+                alphaSlider.step = '0.01';
+                alphaSlider.value = alpha;
+                alphaSlider.id = `alpha-${brand}`;
+                alphaSlider.addEventListener('input', function () {
+                    updateBrandParameter(brand, 'alpha', this.value);
+                });
+                alphaDiv.appendChild(alphaSlider);
+
+                const alphaValue = document.createElement('span');
+                alphaValue.className = 'value';
+                alphaValue.textContent = alpha.toFixed(4);
+                alphaValue.id = `alpha-value-${brand}`;
+                alphaDiv.appendChild(alphaValue);
+
+                brandDiv.appendChild(alphaDiv);
+
+                // Beta slider
+                const betaDiv = document.createElement('div');
+                betaDiv.className = 'param-slider';
+
+                const betaLabel = document.createElement('label');
+                betaLabel.textContent = 'Beta:';
+                betaDiv.appendChild(betaLabel);
+
+                const betaSlider = document.createElement('input');
+                betaSlider.type = 'range';
+                betaSlider.min = '0.01';
+                betaSlider.max = '2';
+                betaSlider.step = '0.01';
+                betaSlider.value = beta;
+                betaSlider.id = `beta-${brand}`;
+                betaSlider.addEventListener('input', function () {
+                    updateBrandParameter(brand, 'beta', this.value);
+                });
+                betaDiv.appendChild(betaSlider);
+
+                const betaValue = document.createElement('span');
+                betaValue.className = 'value';
+                betaValue.textContent = beta.toFixed(4);
+                betaValue.id = `beta-value-${brand}`;
+                betaDiv.appendChild(betaValue);
+
+                brandDiv.appendChild(betaDiv);
+
+                // Reset button
+                const resetButton = document.createElement('button');
+                resetButton.textContent = 'Reset to Default';
+                resetButton.addEventListener('click', function () {
+                    resetBrandParameters(brand);
+                });
+                brandDiv.appendChild(resetButton);
+
+                container.appendChild(brandDiv);
+            });
+        }
+
+        // Store original parameters for reset functionality
+        const originalBrandParams = JSON.parse(JSON.stringify(brandParams));
+
+        // Function to update brand parameters
+        function updateBrandParameter(brand, param, value) {
+            const numValue = parseFloat(value);
+
+            if (param === 'alpha') {
+                brandParams[brand][0] = numValue;
+                document.getElementById(`alpha-value-${brand}`).textContent = numValue.toFixed(4);
+            } else if (param === 'beta') {
+                brandParams[brand][1] = numValue;
+                document.getElementById(`beta-value-${brand}`).textContent = numValue.toFixed(4);
+            }
+
+            // Update plot if this brand is currently selected
+            const brand1 = document.getElementById('brand1').value;
+            const brand2 = document.getElementById('brand2').value;
+            const brand3 = document.getElementById('brand3').value;
+
+            if (brand === brand1 || brand === brand2 || brand === brand3) {
+                updatePlot();
+            }
+        }
+
+        // Function to reset brand parameters to original values
+        function resetBrandParameters(brand) {
+            brandParams[brand] = [...originalBrandParams[brand]];
+
+            const alphaSlider = document.getElementById(`alpha-${brand}`);
+            const betaSlider = document.getElementById(`beta-${brand}`);
+            const alphaValue = document.getElementById(`alpha-value-${brand}`);
+            const betaValue = document.getElementById(`beta-value-${brand}`);
+
+            alphaSlider.value = brandParams[brand][0];
+            betaSlider.value = brandParams[brand][1];
+            alphaValue.textContent = brandParams[brand][0].toFixed(4);
+            betaValue.textContent = brandParams[brand][1].toFixed(4);
+
+            // Update plot if this brand is currently selected
+            const brand1 = document.getElementById('brand1').value;
+            const brand2 = document.getElementById('brand2').value;
+            const brand3 = document.getElementById('brand3').value;
+
+            if (brand === brand1 || brand === brand2 || brand === brand3) {
+                updatePlot();
+            }
+        }
+
+        // Initialize the parameter sliders
+        createParameterSliders();
+
+        // Initial plot
+        updatePlot();
+    </script>
+</body>
+
+</html>
