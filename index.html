@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>3D Beta Distributions</title>
+    <title>3D Distribution Visualizer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.2/plotly.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.5/jstat.min.js"></script>
     <style>
@@ -12,9 +12,20 @@
             padding: 20px;
         }
 
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
         #plot {
-            width: 100%;
+            width: 65%;
             height: 600px;
+        }
+
+        .market-share-container {
+            width: 30%;
+            min-width: 300px;
         }
 
         .controls {
@@ -91,57 +102,165 @@
             font-style: italic;
             color: #555;
         }
+
+        .model-selector {
+            margin-bottom: 15px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .highlighted {
+            background-color: #e6f7ff;
+            font-weight: bold;
+        }
+
+        .market-share-title {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
-    <h2>3D Beta Distributions: Distinct Brand POV</h2>
+    <h2>3D Distribution Visualizer</h2>
 
-    <div class="controls">
-        <div class="brand-selector">
-            <label>Brand 1:</label>
-            <select id="brand1" onchange="updatePlot()">
-                <option value="A" selected>Brand A</option>
-                <option value="B">Brand B</option>
-                <option value="C">Brand C</option>
-                <option value="D">Brand D</option>
-                <option value="E">Brand E</option>
-                <option value="F">Brand F</option>
-                <option value="G">Brand G</option>
-                <option value="H">Brand H</option>
-            </select>
-        </div>
+    <div class="model-selector">
+        <label>Select Model:</label>
+        <select id="model-selector" onchange="switchModel()">
+            <option value="beta" selected>Beta Distribution</option>
+            <option value="dirichlet">Dirichlet Distribution</option>
+        </select>
+    </div>
 
-        <div class="brand-selector">
-            <label>Brand 2:</label>
-            <select id="brand2" onchange="updatePlot()">
-                <option value="A">Brand A</option>
-                <option value="B" selected>Brand B</option>
-                <option value="C">Brand C</option>
-                <option value="D">Brand D</option>
-                <option value="E">Brand E</option>
-                <option value="F">Brand F</option>
-                <option value="G">Brand G</option>
-                <option value="H">Brand H</option>
-            </select>
-        </div>
+    <div id="beta-tab" class="tab-content active">
+        <div class="controls">
+            <div class="brand-selector">
+                <label>Brand 1:</label>
+                <select id="brand1" onchange="updateBetaPlot()">
+                    <option value="A" selected>Brand A</option>
+                    <option value="B">Brand B</option>
+                    <option value="C">Brand C</option>
+                    <option value="D">Brand D</option>
+                    <option value="E">Brand E</option>
+                    <option value="F">Brand F</option>
+                    <option value="G">Brand G</option>
+                    <option value="H">Brand H</option>
+                </select>
+            </div>
 
-        <div class="brand-selector">
-            <label>Brand 3:</label>
-            <select id="brand3" onchange="updatePlot()">
-                <option value="A">Brand A</option>
-                <option value="B">Brand B</option>
-                <option value="C">Brand C</option>
-                <option value="D">Brand D</option>
-                <option value="E" selected>Brand E</option>
-                <option value="F">Brand F</option>
-                <option value="G">Brand G</option>
-                <option value="H">Brand H</option>
-            </select>
+            <div class="brand-selector">
+                <label>Brand 2:</label>
+                <select id="brand2" onchange="updateBetaPlot()">
+                    <option value="A">Brand A</option>
+                    <option value="B" selected>Brand B</option>
+                    <option value="C">Brand C</option>
+                    <option value="D">Brand D</option>
+                    <option value="E">Brand E</option>
+                    <option value="F">Brand F</option>
+                    <option value="G">Brand G</option>
+                    <option value="H">Brand H</option>
+                </select>
+            </div>
+
+            <div class="brand-selector">
+                <label>Brand 3:</label>
+                <select id="brand3" onchange="updateBetaPlot()">
+                    <option value="A">Brand A</option>
+                    <option value="B">Brand B</option>
+                    <option value="C">Brand C</option>
+                    <option value="D">Brand D</option>
+                    <option value="E" selected>Brand E</option>
+                    <option value="F">Brand F</option>
+                    <option value="G">Brand G</option>
+                    <option value="H">Brand H</option>
+                </select>
+            </div>
         </div>
     </div>
 
-    <div id="plot"></div>
+    <div id="dirichlet-tab" class="tab-content">
+        <div class="controls">
+            <div class="brand-selector">
+                <label>Brand 1:</label>
+                <select id="dirichlet-brand1" onchange="updateDirichletPlot()">
+                    <option value="A" selected>Brand A</option>
+                    <option value="B">Brand B</option>
+                    <option value="C">Brand C</option>
+                    <option value="D">Brand D</option>
+                    <option value="E">Brand E</option>
+                    <option value="F">Brand F</option>
+                    <option value="G">Brand G</option>
+                    <option value="H">Brand H</option>
+                </select>
+            </div>
+
+            <div class="brand-selector">
+                <label>Brand 2:</label>
+                <select id="dirichlet-brand2" onchange="updateDirichletPlot()">
+                    <option value="A">Brand A</option>
+                    <option value="B" selected>Brand B</option>
+                    <option value="C">Brand C</option>
+                    <option value="D">Brand D</option>
+                    <option value="E">Brand E</option>
+                    <option value="F">Brand F</option>
+                    <option value="G">Brand G</option>
+                    <option value="H">Brand H</option>
+                </select>
+            </div>
+
+            <div class="brand-selector">
+                <label>Brand 3:</label>
+                <select id="dirichlet-brand3" onchange="updateDirichletPlot()">
+                    <option value="A">Brand A</option>
+                    <option value="B">Brand B</option>
+                    <option value="C" selected>Brand C</option>
+                    <option value="D">Brand D</option>
+                    <option value="E">Brand E</option>
+                    <option value="F">Brand F</option>
+                    <option value="G">Brand G</option>
+                    <option value="H">Brand H</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="plot"></div>
+
+        <div class="market-share-container">
+            <div class="market-share-title">Market Share Comparison</div>
+            <div id="market-share-table"></div>
+        </div>
+    </div>
 
     <div class="parameters" id="parameters-container">
         <!-- Brand parameter sliders will be generated here -->
@@ -152,17 +271,49 @@
     </div>
 
     <script>
-        // Initial brand parameters (alpha and beta)
+        // Initial brand parameters for Beta distribution (alpha and beta)
+        // Updated values as provided
         let brandParams = {
-            'A': [0.1983, 1.0861],
-            'B': [0.0301, 1.3198],
-            'C': [0.0389, 1.2937],
-            'D': [0.0721, 1.1823],
-            'E': [0.3642, 0.7451],
-            'F': [0.1634, 0.9646],
-            'G': [0.1344, 1.0155],
-            'H': [0.1835, 1.0411]
+            'A': [0.199, 1.080],
+            'B': [0.044, 0.876],
+            'C': [0.058, 1.149],
+            'D': [0.230, 3.051],
+            'E': [0.209, 0.420],
+            'F': [0.121, 0.899],
+            'G': [0.189, 1.535],
+            'H': [0.153, 0.885]
         };
+
+        // Initial brand parameters for Dirichlet distribution (alpha)
+        let dirichletParams = {
+            'A': 0.195,
+            'B': 0.054,
+            'C': 0.060,
+            'D': 0.116,
+            'E': 0.362,
+            'F': 0.139,
+            'G': 0.151,
+            'H': 0.175
+        };
+
+        // Actual market share data
+        const actualMarketShare = {
+            'A': 15.2,
+            'B': 3.0,
+            'C': 3.6,
+            'D': 6.8,
+            'E': 32.8,
+            'F': 13.2,
+            'G': 10.7,
+            'H': 14.8
+        };
+
+        // Store original parameters for reset functionality
+        const originalBrandParams = JSON.parse(JSON.stringify(brandParams));
+        const originalDirichletParams = JSON.parse(JSON.stringify(dirichletParams));
+
+        // Current model
+        let currentModel = 'beta';
 
         // Function to compute Beta PDF values using jStat
         function betaPdfValues(alpha, beta, numPoints = 200) {
@@ -170,6 +321,17 @@
             const pdfValues = xValues.map(x => {
                 // Use jStat for accurate Beta PDF calculation
                 return jStat.beta.pdf(x, alpha, beta);
+            });
+
+            return [xValues, pdfValues];
+        }
+
+        // Function to compute marginal Beta PDF for Dirichlet
+        function marginalBetaPdf(alphaI, alphaSum, numPoints = 200) {
+            const xValues = Array.from({ length: numPoints }, (_, i) => i / (numPoints - 1));
+            const betaParam = alphaSum - alphaI;
+            const pdfValues = xValues.map(x => {
+                return jStat.beta.pdf(x, alphaI, betaParam);
             });
 
             return [xValues, pdfValues];
@@ -204,7 +366,7 @@
             return [X, Y, Z];
         }
 
-        // Function to create the 3D plot
+        // Function to create the 3D Beta plot
         function create3DBetaPlot(selectedBrands) {
             const traces = [];
             const colors = ['blue', 'orange', 'green'];
@@ -256,10 +418,137 @@
             };
 
             Plotly.newPlot('plot', traces, layout);
+
+            // Update market share table
+            updateMarketShareTable(selectedBrands);
         }
 
-        // Function to update the plot based on selected brands
-        function updatePlot() {
+        // Function to create the 3D Dirichlet marginals plot
+        function create3DDirichletMarginalsPlot(selectedBrands) {
+            const traces = [];
+            const colors = ['blue', 'orange', 'green'];
+
+            // Calculate the sum of all alpha parameters
+            const alphaSum = Object.values(dirichletParams).reduce((a, b) => a + b, 0);
+
+            selectedBrands.forEach((brand, idx) => {
+                const alpha = dirichletParams[brand];
+                const [xVals, pdfVals] = marginalBetaPdf(alpha, alphaSum);
+                const [X, Y, Z] = getTransformedPoints(idx, xVals, pdfVals);
+
+                traces.push({
+                    type: 'scatter3d',
+                    mode: 'lines',
+                    x: X,
+                    y: Y,
+                    z: Z,
+                    name: `Brand ${brand} (α=${alpha.toFixed(4)}, β=${(alphaSum - alpha).toFixed(4)})`,
+                    line: {
+                        width: 4,
+                        color: colors[idx]
+                    }
+                });
+            });
+
+            const layout = {
+                title: '3D Dirichlet Marginals: Distinct Brand POV',
+                scene: {
+                    xaxis: {
+                        title: 'X-axis',
+                        range: [0, 1]
+                    },
+                    yaxis: {
+                        title: 'Y-axis',
+                        range: [0, 14]
+                    },
+                    zaxis: {
+                        title: 'Z-axis',
+                        range: [0, 14]
+                    },
+                    camera: {
+                        eye: { x: 1.5, y: 1.5, z: 1.5 }
+                    }
+                },
+                margin: {
+                    l: 0,
+                    r: 0,
+                    b: 0,
+                    t: 30
+                }
+            };
+
+            Plotly.newPlot('plot', traces, layout);
+
+            // Update market share table
+            updateMarketShareTable(selectedBrands);
+        }
+
+        // Function to calculate market share for Beta distribution
+        function calculateBetaMarketShare(brand) {
+            const [alpha, beta] = brandParams[brand];
+            return alpha / (alpha + beta) * 100;
+        }
+
+        // Function to calculate market share for Dirichlet distribution
+        function calculateDirichletMarketShare(brand) {
+            const alphaSum = Object.values(dirichletParams).reduce((a, b) => a + b, 0);
+            return dirichletParams[brand] / alphaSum * 100;
+        }
+
+        // Function to update the market share table
+        function updateMarketShareTable(selectedBrands) {
+            const tableContainer = document.getElementById('market-share-table');
+            let tableHTML = '<table>';
+
+            // Table header
+            tableHTML += '<tr><th>Brand</th><th>Actual Share (%)</th>';
+
+            if (currentModel === 'beta') {
+                tableHTML += '<th>Beta Model Share (%)</th><th>Difference</th></tr>';
+
+                // All brands row
+                Object.keys(brandParams).forEach(brand => {
+                    const isSelected = selectedBrands.includes(brand);
+                    const rowClass = isSelected ? 'highlighted' : '';
+
+                    const actualShare = actualMarketShare[brand];
+                    const modelShare = calculateBetaMarketShare(brand);
+                    const difference = (modelShare - actualShare).toFixed(1);
+
+                    tableHTML += `<tr class="${rowClass}">
+                        <td>Brand ${brand}</td>
+                        <td>${actualShare.toFixed(1)}</td>
+                        <td>${modelShare.toFixed(1)}</td>
+                        <td>${difference}</td>
+                    </tr>`;
+                });
+            } else {
+                tableHTML += '<th>Dirichlet Model Share (%)</th><th>Difference</th></tr>';
+
+                // All brands row
+                Object.keys(dirichletParams).forEach(brand => {
+                    const isSelected = selectedBrands.includes(brand);
+                    const rowClass = isSelected ? 'highlighted' : '';
+
+                    const actualShare = actualMarketShare[brand];
+                    const modelShare = calculateDirichletMarketShare(brand);
+                    const difference = (modelShare - actualShare).toFixed(1);
+
+                    tableHTML += `<tr class="${rowClass}">
+                        <td>Brand ${brand}</td>
+                        <td>${actualShare.toFixed(1)}</td>
+                        <td>${modelShare.toFixed(1)}</td>
+                        <td>${difference}</td>
+                    </tr>`;
+                });
+            }
+
+            tableHTML += '</table>';
+            tableContainer.innerHTML = tableHTML;
+        }
+
+        // Function to update the Beta plot based on selected brands
+        function updateBetaPlot() {
             const brand1 = document.getElementById('brand1').value;
             const brand2 = document.getElementById('brand2').value;
             const brand3 = document.getElementById('brand3').value;
@@ -267,93 +556,175 @@
             create3DBetaPlot([brand1, brand2, brand3]);
         }
 
+        // Function to update the Dirichlet plot based on selected brands
+        function updateDirichletPlot() {
+            const brand1 = document.getElementById('dirichlet-brand1').value;
+            const brand2 = document.getElementById('dirichlet-brand2').value;
+            const brand3 = document.getElementById('dirichlet-brand3').value;
+
+            create3DDirichletMarginalsPlot([brand1, brand2, brand3]);
+        }
+
+        // Function to switch between models
+        function switchModel() {
+            currentModel = document.getElementById('model-selector').value;
+
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${currentModel}-tab`).classList.add('active');
+
+            // Update parameters container
+            createParameterSliders();
+
+            // Update plot
+            if (currentModel === 'beta') {
+                updateBetaPlot();
+            } else {
+                updateDirichletPlot();
+            }
+        }
+
         // Function to create parameter sliders for all brands
         function createParameterSliders() {
             const container = document.getElementById('parameters-container');
             container.innerHTML = '';
 
-            Object.keys(brandParams).forEach(brand => {
-                const [alpha, beta] = brandParams[brand];
+            if (currentModel === 'beta') {
+                // Create Beta distribution parameter sliders
+                Object.keys(brandParams).forEach(brand => {
+                    const [alpha, beta] = brandParams[brand];
 
-                const brandDiv = document.createElement('div');
-                brandDiv.className = 'brand-params';
+                    const brandDiv = document.createElement('div');
+                    brandDiv.className = 'brand-params';
 
-                const brandTitle = document.createElement('h3');
-                brandTitle.textContent = `Brand ${brand} Parameters`;
-                brandDiv.appendChild(brandTitle);
+                    const brandTitle = document.createElement('h3');
+                    brandTitle.textContent = `Brand ${brand} Parameters`;
+                    brandDiv.appendChild(brandTitle);
 
-                // Alpha slider
-                const alphaDiv = document.createElement('div');
-                alphaDiv.className = 'param-slider';
+                    // Alpha slider
+                    const alphaDiv = document.createElement('div');
+                    alphaDiv.className = 'param-slider';
 
-                const alphaLabel = document.createElement('label');
-                alphaLabel.textContent = 'Alpha:';
-                alphaDiv.appendChild(alphaLabel);
+                    const alphaLabel = document.createElement('label');
+                    alphaLabel.textContent = 'Alpha:';
+                    alphaDiv.appendChild(alphaLabel);
 
-                const alphaSlider = document.createElement('input');
-                alphaSlider.type = 'range';
-                alphaSlider.min = '0.01';
-                alphaSlider.max = '2';
-                alphaSlider.step = '0.01';
-                alphaSlider.value = alpha;
-                alphaSlider.id = `alpha-${brand}`;
-                alphaSlider.addEventListener('input', function () {
-                    updateBrandParameter(brand, 'alpha', this.value);
+                    const alphaSlider = document.createElement('input');
+                    alphaSlider.type = 'range';
+                    alphaSlider.min = '0.01';
+                    alphaSlider.max = '2';
+                    alphaSlider.step = '0.01';
+                    alphaSlider.value = alpha;
+                    alphaSlider.id = `alpha-${brand}`;
+                    alphaSlider.addEventListener('input', function () {
+                        updateBrandParameter(brand, 'alpha', this.value);
+                    });
+                    alphaDiv.appendChild(alphaSlider);
+
+                    const alphaValue = document.createElement('span');
+                    alphaValue.className = 'value';
+                    alphaValue.textContent = alpha.toFixed(4);
+                    alphaValue.id = `alpha-value-${brand}`;
+                    alphaDiv.appendChild(alphaValue);
+
+                    brandDiv.appendChild(alphaDiv);
+
+                    // Beta slider
+                    const betaDiv = document.createElement('div');
+                    betaDiv.className = 'param-slider';
+
+                    const betaLabel = document.createElement('label');
+                    betaLabel.textContent = 'Beta:';
+                    betaDiv.appendChild(betaLabel);
+
+                    const betaSlider = document.createElement('input');
+                    betaSlider.type = 'range';
+                    betaSlider.min = '0.01';
+                    betaSlider.max = '4';  // Increased max to accommodate higher beta values
+                    betaSlider.step = '0.01';
+                    betaSlider.value = beta;
+                    betaSlider.id = `beta-${brand}`;
+                    betaSlider.addEventListener('input', function () {
+                        updateBrandParameter(brand, 'beta', this.value);
+                    });
+                    betaDiv.appendChild(betaSlider);
+
+                    const betaValue = document.createElement('span');
+                    betaValue.className = 'value';
+                    betaValue.textContent = beta.toFixed(4);
+                    betaValue.id = `beta-value-${brand}`;
+                    betaDiv.appendChild(betaValue);
+
+                    brandDiv.appendChild(betaDiv);
+
+                    // Reset button
+                    const resetButton = document.createElement('button');
+                    resetButton.textContent = 'Reset to Default';
+                    resetButton.addEventListener('click', function () {
+                        resetBrandParameters(brand);
+                    });
+                    brandDiv.appendChild(resetButton);
+
+                    container.appendChild(brandDiv);
                 });
-                alphaDiv.appendChild(alphaSlider);
+            } else {
+                // Create Dirichlet distribution parameter sliders
+                Object.keys(dirichletParams).forEach(brand => {
+                    const alpha = dirichletParams[brand];
 
-                const alphaValue = document.createElement('span');
-                alphaValue.className = 'value';
-                alphaValue.textContent = alpha.toFixed(4);
-                alphaValue.id = `alpha-value-${brand}`;
-                alphaDiv.appendChild(alphaValue);
+                    const brandDiv = document.createElement('div');
+                    brandDiv.className = 'brand-params';
 
-                brandDiv.appendChild(alphaDiv);
+                    const brandTitle = document.createElement('h3');
+                    brandTitle.textContent = `Brand ${brand} Parameter`;
+                    brandDiv.appendChild(brandTitle);
 
-                // Beta slider
-                const betaDiv = document.createElement('div');
-                betaDiv.className = 'param-slider';
+                    // Alpha slider
+                    const alphaDiv = document.createElement('div');
+                    alphaDiv.className = 'param-slider';
 
-                const betaLabel = document.createElement('label');
-                betaLabel.textContent = 'Beta:';
-                betaDiv.appendChild(betaLabel);
+                    const alphaLabel = document.createElement('label');
+                    alphaLabel.textContent = 'Alpha:';
+                    alphaDiv.appendChild(alphaLabel);
 
-                const betaSlider = document.createElement('input');
-                betaSlider.type = 'range';
-                betaSlider.min = '0.01';
-                betaSlider.max = '2';
-                betaSlider.step = '0.01';
-                betaSlider.value = beta;
-                betaSlider.id = `beta-${brand}`;
-                betaSlider.addEventListener('input', function () {
-                    updateBrandParameter(brand, 'beta', this.value);
+                    const alphaSlider = document.createElement('input');
+                    alphaSlider.type = 'range';
+                    alphaSlider.min = '0.01';
+                    alphaSlider.max = '1';
+                    alphaSlider.step = '0.01';
+                    alphaSlider.value = alpha;
+                    alphaSlider.id = `dirichlet-alpha-${brand}`;
+                    alphaSlider.addEventListener('input', function () {
+                        updateDirichletParameter(brand, this.value);
+                    });
+                    alphaDiv.appendChild(alphaSlider);
+
+                    const alphaValue = document.createElement('span');
+                    alphaValue.className = 'value';
+                    alphaValue.textContent = alpha.toFixed(4);
+                    alphaValue.id = `dirichlet-alpha-value-${brand}`;
+                    alphaDiv.appendChild(alphaValue);
+
+                    brandDiv.appendChild(alphaDiv);
+
+                    // Reset button
+                    const resetButton = document.createElement('button');
+                    resetButton.textContent = 'Reset to Default';
+                    resetButton.addEventListener('click', function () {
+                        resetDirichletParameter(brand);
+                    });
+                    brandDiv.appendChild(resetButton);
+
+                    container.appendChild(brandDiv);
                 });
-                betaDiv.appendChild(betaSlider);
-
-                const betaValue = document.createElement('span');
-                betaValue.className = 'value';
-                betaValue.textContent = beta.toFixed(4);
-                betaValue.id = `beta-value-${brand}`;
-                betaDiv.appendChild(betaValue);
-
-                brandDiv.appendChild(betaDiv);
-
-                // Reset button
-                const resetButton = document.createElement('button');
-                resetButton.textContent = 'Reset to Default';
-                resetButton.addEventListener('click', function () {
-                    resetBrandParameters(brand);
-                });
-                brandDiv.appendChild(resetButton);
-
-                container.appendChild(brandDiv);
-            });
+            }
         }
 
-        // Store original parameters for reset functionality
-        const originalBrandParams = JSON.parse(JSON.stringify(brandParams));
-
-        // Function to update brand parameters
+        // Function to update brand parameters for Beta distribution
         function updateBrandParameter(brand, param, value) {
             const numValue = parseFloat(value);
 
@@ -371,11 +742,33 @@
             const brand3 = document.getElementById('brand3').value;
 
             if (brand === brand1 || brand === brand2 || brand === brand3) {
-                updatePlot();
+                updateBetaPlot();
+            } else {
+                // Just update the market share table without redrawing the plot
+                updateMarketShareTable([brand1, brand2, brand3]);
             }
         }
 
-        // Function to reset brand parameters to original values
+        // Function to update brand parameters for Dirichlet distribution
+        function updateDirichletParameter(brand, value) {
+            const numValue = parseFloat(value);
+            dirichletParams[brand] = numValue;
+            document.getElementById(`dirichlet-alpha-value-${brand}`).textContent = numValue.toFixed(4);
+
+            // Update plot if this brand is currently selected
+            const brand1 = document.getElementById('dirichlet-brand1').value;
+            const brand2 = document.getElementById('dirichlet-brand2').value;
+            const brand3 = document.getElementById('dirichlet-brand3').value;
+
+            if (brand === brand1 || brand === brand2 || brand === brand3) {
+                updateDirichletPlot();
+            } else {
+                // Just update the market share table without redrawing the plot
+                updateMarketShareTable([brand1, brand2, brand3]);
+            }
+        }
+
+        // Function to reset brand parameters to original values for Beta distribution
         function resetBrandParameters(brand) {
             brandParams[brand] = [...originalBrandParams[brand]];
 
@@ -395,7 +788,33 @@
             const brand3 = document.getElementById('brand3').value;
 
             if (brand === brand1 || brand === brand2 || brand === brand3) {
-                updatePlot();
+                updateBetaPlot();
+            } else {
+                // Just update the market share table without redrawing the plot
+                updateMarketShareTable([brand1, brand2, brand3]);
+            }
+        }
+
+        // Function to reset brand parameters to original values for Dirichlet distribution
+        function resetDirichletParameter(brand) {
+            dirichletParams[brand] = originalDirichletParams[brand];
+
+            const alphaSlider = document.getElementById(`dirichlet-alpha-${brand}`);
+            const alphaValue = document.getElementById(`dirichlet-alpha-value-${brand}`);
+
+            alphaSlider.value = dirichletParams[brand];
+            alphaValue.textContent = dirichletParams[brand].toFixed(4);
+
+            // Update plot if this brand is currently selected
+            const brand1 = document.getElementById('dirichlet-brand1').value;
+            const brand2 = document.getElementById('dirichlet-brand2').value;
+            const brand3 = document.getElementById('dirichlet-brand3').value;
+
+            if (brand === brand1 || brand === brand2 || brand === brand3) {
+                updateDirichletPlot();
+            } else {
+                // Just update the market share table without redrawing the plot
+                updateMarketShareTable([brand1, brand2, brand3]);
             }
         }
 
@@ -403,7 +822,7 @@
         createParameterSliders();
 
         // Initial plot
-        updatePlot();
+        updateBetaPlot();
     </script>
 </body>
 
